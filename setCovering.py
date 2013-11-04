@@ -1,9 +1,9 @@
 #!/usr/bin/python
-#randomize, randomseed 1 vez no inicio
 
 import sys
 import random
 import copy
+import time
 
 class Subset:
     def __init__(self,cost):
@@ -30,10 +30,10 @@ def createSet(filename):
             if dataType == "dados" or dataType == "densidade":
                 isData = True
         else:
-            setCover[int(data[0])] = Subset(float(data[1]))
+            setCover[data[0]] = Subset(float(data[1]))
             for i in range(2,len(data)):
-                setElements.add(int(data[i]))
-                setCover[int(data[0])].setSubElement(int(data[i]))
+                setElements.add(data[i])
+                setCover[data[0]].setSubElement(data[i])
     f.close()
     return SetUniverse(setCover,setElements)
 
@@ -52,12 +52,18 @@ def generatePopulation(universe,subset,maxSize):
     return population
 
 if __name__ == "__main__":
+    random.seed(time.time())
     filename = sys.argv[1]
     setUniverse = createSet(filename)
     for i in setUniverse.setCover:
-        print("%d:" % i),
+        print("%s:" % i),
         print(setUniverse.setCover[i].cost),
         print(setUniverse.setCover[i].elements)
-    print(setUniverse.setElements)
-    print(generatePopulation(setUniverse.setElements,setUniverse.setCover,
-        int(sys.argv[2])))
+    population = generatePopulation(setUniverse.setElements,
+            setUniverse.setCover,int(sys.argv[2]))
+    for subset in population:
+        cost = 0
+        for col in subset:
+            cost += setUniverse.setCover[col].cost
+        print(subset),
+        print(cost)
