@@ -2,14 +2,15 @@
 
 from sys import argv
 from random import seed, sample
-from copy import deepcopy
 from time import time
+from heapq import nsmallest
 
 #read the file and return a list with the universe and the subsets
 def readFile(filename):
     isData = False
     subsets = dict()
     universe = set()
+    columns = set()
     f = open(filename)
     for line in f:
         data = line.strip("\n").split()
@@ -19,46 +20,70 @@ def readFile(filename):
                 isData = True
         else:
             subsets[data[0]] = [float(data[1]),set()]
+            columns.add(data[0])
             for i in range(2,len(data)):
                 universe.add(data[i])
                 subsets[data[0]][1].add(data[i])
     f.close()
-    return universe, subsets
+    return universe, columns, subsets
 
-def generatePopulation(universe,subset,maxSize):
+def generatePopulation(universe,columns,subsets,maxSize):
     population = list()
     while (len(population) < maxSize):
         solution = set()
-        universeTemp = deepcopy(universe)
         cost = 0
+        universeTemp = set(universe)
         while (len(universeTemp) != 0):
             row = sample(universeTemp,1).pop()
-            for i in subset:
-                if row in subset[i][1]:
+            for i in columns:
+                if row in subsets[i][1]:
                     solution.add(i)
-                    cost += subset[i][0]
-                    universeTemp.difference_update(subset[i][1])
-        population.append([solution,cost])
+                    cost += subsets[i][0]
+                    universeTemp.difference_update(subsets[i][1])
+                if (len(universeTemp) == 0): break
+        population.append([cost,solution])
     return population
 
 def selection(population):
-    individuals = list()
-    for i in range(0,3): individuals.append(sample(population,1).pop())
-    return min(individuals, key = lambda individual: individual[1])
+    return min([sample(population,1).pop() for i in range(3)],
+            key = lambda x: x[0])
+
+def mateIndividuals(universe,parents,subsets):
+    crossParent = set(parents[0][1])
+    crossParent.update(parents[1][1])
+    return generatePopulation(universe,crossParent,
+            subsets,len(parents))
+
+def updatePopulation(population,newIndividuals,parents):
+    i = 0
+    while (len(newIndividuals) != 0):
+        if (i >= len(population)):
+            population.append(newIndividuals.pop())
+        elif (population[i] in parents):
+            population[i] = newIndividuals.pop()
+        i += 1
+
+#genetic algorithm to solve the set covering problem
+def geneticSCP(universe,columns,subsets,size,estimateTime):
+    startTime = time()
+    totalTime = 0
+    population = generatePopulation(universe,columns,subsets,size)
+    while totalTime < estimateTime:
+        parents = [selection(population) for i in range(2)]
+        newIndividuals = mateIndividuals(universe,parents,subsets)
+        updatePopulation(population,newIndividuals,parents)
+        totalTime = time() - startTime
+    print(nsmallest(1, population, key = lambda x: x[0])).pop()
 
 if __name__ == "__main__":
     seed(time())
     filename = argv[1]
-    universe, subsets = readFile(filename)
-    for i in subsets: # get the subsets
-        print(i), #print the column (subset)
-        print(subsets[i][0]), #the cost of the column
-        print(subsets[i][1])  #the elements of the column
-    print(universe)
-    print
-    population = generatePopulation(universe,subsets,int(argv[2]))
-    individual = selection(population)
-    for solution in population:
-        print(solution)
-    print
-    print(individual)
+    size = int(argv[2])
+    estimateTime = float(argv[3])
+    universe, columns, subsets = readFile(filename)
+    geneticSCP(universe,columns,subsets,size,estimateTime)
+    #for i in subsets: # get the subsets
+    #    print(i), #print the column (subset)
+    #    print(subsets[i][0]), #the cost of the column
+    #    print(subsets[i][1])  #the elements of the column
+    #print(universe)
