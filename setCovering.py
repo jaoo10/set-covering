@@ -54,14 +54,10 @@ def mateIndividuals(universe,parents,subsets):
     return generatePopulation(universe,crossParent,
             subsets,len(parents))
 
-def updatePopulation(population,newIndividuals,parents):
-    i = 0
-    while (len(newIndividuals) != 0):
-        if (i >= len(population)):
-            population.append(newIndividuals.pop())
-        elif (population[i] in parents):
-            population[i] = newIndividuals.pop()
-        i += 1
+def updatePopulation(population,newIndividuals):
+    population.sort(key = lambda indiv: indiv[0])
+    for i in range(len(newIndividuals)):
+        population[len(population) - (i + 1)] = newIndividuals[i]
 
 #genetic algorithm to solve the set covering problem
 def geneticSCP(universe,columns,subsets,size,estimateTime):
