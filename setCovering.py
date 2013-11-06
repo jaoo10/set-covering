@@ -63,13 +63,16 @@ def updatePopulation(population,newIndividuals):
 def geneticSCP(universe,columns,subsets,size,estimateTime):
     startTime = time()
     totalTime = 0
+    k = 0
     population = generatePopulation(universe,columns,subsets,size)
     while totalTime < estimateTime:
         parents = [selection(population) for i in range(2)]
         newIndividuals = mateIndividuals(universe,parents,subsets)
-        updatePopulation(population,newIndividuals,parents)
+        updatePopulation(population,newIndividuals)
         totalTime = time() - startTime
+        k += 1
     print(nsmallest(1, population, key = lambda x: x[0])).pop()
+    print(k)
 
 if __name__ == "__main__":
     seed(time())
