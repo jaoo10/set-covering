@@ -9,6 +9,9 @@ do
     $(./setCovering.py $1 $2 $3 $4 >> $file)
     let initTime=$(date +%s)-$time
 done
-cat $file | sort -r
+cat $file | sort > file
+cat file > $file
+rm file
+tac $file
 totalLines=$(cat $file | wc -l)
 echo "Total: $totalLines"
