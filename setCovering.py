@@ -96,6 +96,7 @@ def geneticSCP(universe,columns,subsets,populationSize,
         totalTime = time() - startTime
     smallest = population[0]
     print("cost: %s" % smallest[0]),
+    print("time: %.2fs" % totalTime),
     print(smallest[1])
 
 if __name__ == "__main__":
