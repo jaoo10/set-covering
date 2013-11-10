@@ -2,7 +2,6 @@
 
 from sys import argv
 from time import time
-from heapq import nsmallest
 import random
 
 #read the file and return a list with the universe and the subsets
@@ -40,7 +39,6 @@ def generatePopulation(universe,columns,subsets,maxSize):
                     solution.add(i)
                     cost += subsets[i][0]
                     universeTemp.difference_update(subsets[i][1])
-                if (len(universeTemp) == 0): break
         population.append([cost,solution])
     return population
 
@@ -52,40 +50,51 @@ def mateIndividuals(universe,parents,subsets):
     crossParent = set(parents[0][1])
     crossParent.update(parents[1][1])
     return generatePopulation(universe,crossParent,
-            subsets,len(parents))
+            subsets,1).pop()
 
-def mutation(individuals,rate,columns,subsets):
-    for indiv in individuals:
-        if random.uniform(0,1) <= rate:
-            columnsDif = set(columns)
-            columnsDif.difference_update(indiv[1])
-            if (len(columnsDif) != 0):
-                col = random.sample(columnsDif,1).pop()
-                indiv[0] += subsets[col][0]
-                indiv[1].add(col)
+def mutation(individual,rate,columns,subsets):
+    if random.uniform(0,1) <= rate:
+        columnsDif = set(columns)
+        columnsDif.difference_update(individual[1])
+        if (len(columnsDif) != 0):
+            col = random.sample(columnsDif,1).pop()
+            individual[0] += subsets[col][0]
+            individual[1].add(col)
 
-def updatePopulation(population,newIndividuals):
+def updatePopulation(population,newIndividual,extremes):
     population.sort(key = lambda indiv: indiv[0])
-    for i in range(len(newIndividuals)):
-        population[len(population) - (i + 1)] = newIndividuals[i]
+    population[len(population) - 1] = newIndividual
+    extremes[0] = population[len(population) - 2][0] #max cost
+    extremes[1] = population[0][0] #min cost
+
+def VND(universe,subsets,solution,r):
+    s = solution
+    k = 1
+    while k <= r:
+        neighbor = generatePopulation(universe,s[1],subsets,1).pop()
+        if (neighbor[0] < s[0]):
+            s = neighbor
+            k = 1
+        else:
+            k += 1
+    return s
 
 #genetic algorithm to solve the set covering problem
 def geneticSCP(universe,columns,subsets,populationSize,
         mutationRate,estimateTime):
     startTime = time()
     totalTime = 0
+    extremes = [i for i in range(2)] #max and min costs
     population = generatePopulation(universe,columns,subsets,
             populationSize)
-    while totalTime < estimateTime:
+    while totalTime < estimateTime and int(extremes[0]) != int(extremes[1]):
         parents = [selection(population) for i in range(2)]
-        newIndividuals = mateIndividuals(universe,parents,subsets)
-        mutation(newIndividuals,mutationRate,columns,subsets)
-        updatePopulation(population,newIndividuals)
+        newIndividual = mateIndividuals(universe,parents,subsets)
+        mutation(newIndividual,mutationRate,columns,subsets)
+        newIndividual = VND(universe,subsets,newIndividual,5)
+        updatePopulation(population,newIndividual,extremes)
         totalTime = time() - startTime
-    showSmallest(population)
-    
-def showSmallest(population):
-    smallest = nsmallest(1, population, key = lambda x: x[0]).pop()
+    smallest = population[0]
     print("cost: %s" % smallest[0]),
     print(smallest[1])
 

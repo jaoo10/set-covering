@@ -3,7 +3,7 @@
 time=$(date +%s)
 initTime=0
 file=$(echo $1 | cut -d "/" -f2 | cut -d "." -f1)
-file=results/$file"_"$2_$3_$4
+file=results/$file
 while [ $initTime -le $5 ]
 do
     $(./setCovering.py $1 $2 $3 $4 >> $file)
