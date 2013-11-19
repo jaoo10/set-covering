@@ -94,10 +94,7 @@ def geneticSCP(universe,columns,subsets,populationSize,
         newIndividual = VND(universe,subsets,newIndividual,5)
         updatePopulation(population,newIndividual,extremes)
         totalTime = time() - startTime
-    smallest = population[0]
-    print("cost: %s" % smallest[0]),
-    print("time: %.2fs" % totalTime),
-    print(smallest[1])
+    return population[0], totalTime
 
 if __name__ == "__main__":
     random.seed(time())
@@ -106,5 +103,8 @@ if __name__ == "__main__":
     mutationRate = float(argv[3])
     estimateTime = float(argv[4])
     universe, columns, subsets = readFile(filename)
-    geneticSCP(universe,columns,subsets,populationSize,
+    smallest, totalTime = geneticSCP(universe,columns,subsets,populationSize,
             mutationRate,estimateTime)
+    print("cost: %s" % smallest[0]),
+    print("time: %.2fs" % totalTime),
+    print(smallest[1])
